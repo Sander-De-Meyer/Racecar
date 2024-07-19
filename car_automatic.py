@@ -1,15 +1,18 @@
 import numpy as np
-from track import Track
-from gym import spaces
+import pygame
 
+from track import Track
 
 ACCELERATION_UNIT = 0.2
 STEERING_UNIT = 0.001
-MAX_STEPS = 500
+MAX_STEPS = 200
 
+class Own_Space:
+    def __init__(self, n):
+        self.n = n
 
 class Car:
-    def __init__(self, x=0, y=0, width = 40, length = 40, theta=0, speed=0, inv_radius=0):
+    def __init__(self, x=0, y=0, width = 40, length = 40, theta=0, speed=0, inv_radius=0, manual=True):
         # x and y are positions
         # theta is the angle of rotation of the car, in the interval [0, 2pi]. 0 means pointing rightward
         # speed is speed of the car
@@ -18,12 +21,18 @@ class Car:
         # It is positive if the wheels are turned rightward
         # Delta t is 1 second
 
-        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = x, y, width, length, theta, speed, inv_radius
+        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius, self.manual = x, y, width, length, theta, speed, inv_radius, manual
         self.number_of_steps = 0
-        self.action_space = spaces.Discrete(4)
+        self.action_space = Own_Space(4)
         self.track = Track(r"C:\Users\Sande\Documents\Projecten\Racecar\track2.png")
 
         self.set_centre()
+
+        if not self.manual:
+            print("here")
+            self.racecar_image = pygame.image.load(r"C:\Users\Sande\Documents\Projecten\Racecar\racecar_bijgesneden.jpg")  # Load the car image
+            # self.racecar_image = pygame.transform.scale(self.racecar_image, (35, 70))  # Scale the image to an appropriate size
+            self.racecar_image = pygame.transform.scale(self.racecar_image, (width, length))  # Scale the image to an appropriate size
 
         self.progress = self.get_progess_angle()
 
@@ -31,12 +40,18 @@ class Car:
         return f"Position: ({self.x}, {self.y}) \nRotation: {self.theta} \nSpeed: {self.speed}" 
     
     def state(self):
-        return np.array([self.x, self.y, self.theta, self.speed, self.inv_radius], dtype=np.float32)
+        return (self.x, self.y, self.theta, self.speed, self.inv_radius)
 
     def reset(self):
-        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = 0, 0, 40, 40, 0, 0, 0
+        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius, self.manual = 0, 0, 40, 40, 0, 0, 0, True
         self.number_of_steps = 0
         self.set_centre()
+
+        if not self.manual:
+            print("here")
+            self.racecar_image = pygame.image.load(r"C:\Users\Sande\Documents\Projecten\Racecar\racecar_bijgesneden.jpg")  # Load the car image
+            # self.racecar_image = pygame.transform.scale(self.racecar_image, (35, 70))  # Scale the image to an appropriate size
+            self.racecar_image = pygame.transform.scale(self.racecar_image, (40, 40))  # Scale the image to an appropriate size
 
         self.progress = self.get_progess_angle()
 
@@ -57,9 +72,7 @@ class Car:
 
         new_state, reward = self.update(controls)
         
-        truncated = (self.number_of_steps > MAX_STEPS)    
-        if truncated:
-            print(f"Max number of iterations, {MAX_STEPS}, exceeded\n")    
+        truncated = (self.number_of_steps > MAX_STEPS)        
         terminated = self.check_collision_efficient(self.track)
 
         self.number_of_steps += 1
@@ -88,16 +101,31 @@ class Car:
 
         self.set_centre()
 
-        return np.float32(change)
+        return change
 
-    def steer(self, controls):
+    def steer_manual(self, controls):
         updown = controls[0]
         rightleft = controls[1]
         self.speed += (updown)*ACCELERATION_UNIT
         self.inv_radius += (rightleft)*STEERING_UNIT
     
+    def steer(self):
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_UP]:
+            self.speed += ACCELERATION_UNIT
+        if keys[pygame.K_DOWN]:
+            self.speed -= ACCELERATION_UNIT
+        if keys[pygame.K_LEFT]:
+            self.inv_radius -= STEERING_UNIT
+        if keys[pygame.K_RIGHT]:
+            self.inv_radius += STEERING_UNIT
+
     def update(self, controls):
-        self.steer(controls)
+        if self.manual:
+            self.steer_manual(controls)
+        else:
+            print("here")
+            self.steer()
         progress = self.move()
         # print(f"Progress = {self.progress}")
         # print(f"Centre = {self.centre_x}, {self.centre_y}")
@@ -114,7 +142,6 @@ class Car:
         return (np.sum(is_collided))
 
     def check_collision_efficient(self, track):
-        return False
         front_left = (self.centre_x  + np.cos(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2, self.centre_y - np.sin(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2)
         front_right = (self.centre_x  + np.cos(self.theta)*self.length/2 + np.sin(self.theta)*self.width/2, self.centre_y - np.sin(self.theta)*self.length/2 + np.sin(self.theta)*self.width/2)
         back_left = (self.centre_x  - np.cos(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2, self.centre_y + np.sin(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2)

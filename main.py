@@ -2,7 +2,7 @@ import pygame
 import sys
 import numpy as np
 
-from car import Car
+from Racecar.car_automatic import Car
 from track import Track
 
 MAX_ITERATIONS = 10000
@@ -11,7 +11,7 @@ controls = [[0.05*(i < 100), 0] for i in range(MAX_ITERATIONS)]
 
 def main():
     pygame.init()
-    track = Track("track2.png")
+    track = Track(r"C:\Users\Sande\Documents\Projecten\Racecar\track2.png")
     # screen = pygame.display.set_mode((800, 800))
     clock = pygame.time.Clock()
     car = Car(400, 80, width = 40, length = 40, theta = 0, inv_radius = 0.0, manual = False)

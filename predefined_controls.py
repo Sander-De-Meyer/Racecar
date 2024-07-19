@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from car import Car
+from Racecar.car_automatic import Car
 
 car1 = Car()
 
