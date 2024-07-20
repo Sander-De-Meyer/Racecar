@@ -3,7 +3,7 @@ import collections
 
 
 class ReplayMemory:
-    def __init__(self, env, memory_size=50000, burn_in=10000):
+    def __init__(self, env, memory_size=50000, burn_in=2000): #burn in was 100000
         # Initializes the replay memory, which stores transitions recorded from the agent taking actions in the environment.
         self.memory_size = memory_size
         self.burn_in = burn_in

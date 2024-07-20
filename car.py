@@ -5,11 +5,17 @@ from gym import spaces
 
 ACCELERATION_UNIT = 0.2
 STEERING_UNIT = 0.001
-MAX_STEPS = 500
+MAX_STEPS = 3000
 
+ACTION_SPACE_SIZE = 2
+
+if ACTION_SPACE_SIZE == 2:
+    initial_speed = 5
+else:
+    initial_speed = 0
 
 class Car:
-    def __init__(self, x=400, y=80, width = 20, length = 20, theta=0, speed=0, inv_radius=0):
+    def __init__(self, x=400, y=80, width = 20, length = 20, theta=0, speed=initial_speed, inv_radius=0):
         # x and y are positions
         # theta is the angle of rotation of the car, in the interval [0, 2pi]. 0 means pointing rightward
         # speed is speed of the car
@@ -20,7 +26,7 @@ class Car:
 
         self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = x, y, width, length, theta, speed, inv_radius
         self.number_of_steps = 0
-        self.action_space = spaces.Discrete(4)
+        self.action_space = spaces.Discrete(ACTION_SPACE_SIZE)
         self.track = Track(r"C:\Users\Sande\Documents\Projecten\Racecar\track3.png")
 
         self.set_centre()
@@ -34,7 +40,7 @@ class Car:
         return np.array([self.x, self.y, self.theta, self.speed, self.inv_radius], dtype=np.float32)
 
     def reset(self):
-        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = 400, 80, 20, 20, 0, 0, 0
+        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = 400, 80, 20, 20, 0, initial_speed, 0
         self.number_of_steps = 0
         self.set_centre()
 
@@ -44,23 +50,37 @@ class Car:
 
     def step(self, action):
         # action is 0 for left, 1 for up, 2 for right, 3 for down
-        if action == 0:
-            controls = [0, -1]
-        elif action == 1:
-            controls = [1, 0]
-        elif action == 2:
-            controls = [0, 1]
-        elif action == 3:
-            controls = [-1, 0]
+        if ACTION_SPACE_SIZE == 2:
+            if action == 0:
+                controls = [0, -1]
+            elif action == 1:
+                controls = [0, 1]
+            else:
+                controls = [0, 0]
+        elif ACTION_SPACE_SIZE == 4:
+            if action == 0:
+                controls = [0, -1]
+            elif action == 1:
+                controls = [1, 0]
+            elif action == 2:
+                controls = [0, 1]
+            elif action == 3:
+                controls = [-1, 0]
+            else:
+                controls = [0, 0]
         else:
-            controls = [0, 0]
-
+            print("Wrongg action_space_size")
         new_state, reward = self.update(controls)
         
-        truncated = (self.number_of_steps > MAX_STEPS)    
+        truncated = (self.number_of_steps >= MAX_STEPS)    
         # if truncated:
         #     print(f"Max number of iterations, {MAX_STEPS}, exceeded\n")    
         terminated = self.check_collision_efficient(self.track)
+
+        if truncated:
+            print(f"truncated after t = {self.number_of_steps}")
+        if terminated:
+            print(f"terminated after t = {self.number_of_steps}")
 
         self.number_of_steps += 1
         return new_state, reward, terminated, truncated, {}
@@ -87,6 +107,8 @@ class Car:
         self.progress += change
 
         self.set_centre()
+
+        change = -np.sqrt((self.x-400)**2 + (self.y-800)**2)
 
         return np.float32(change)
 

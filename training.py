@@ -20,12 +20,12 @@ print(f"device = {device}")
 print("starting with environment parameters")
 # Set environment and training parameters
 num_episodes_train = 300 #200
-num_episodes_test = 10 # 20
+num_episodes_test = 1 # 20
 learning_rate = 5e-4
 
 # Create the environment
-env = gym.make('CartPole-v0')
-env = CartPole()
+# env = gym.make('CartPole-v0')
+# env = CartPole()
 env = Car()
 
 action_space_size = env.action_space.n
@@ -45,9 +45,7 @@ for i in tqdm.tqdm(range(num_seeds)):
     reward_means = []
 
     # Create an instance of the DQN_Agent class
-    print("ist hier?")
-    agent = DQN_Agent(env, lr=learning_rate)
-    print("nope")
+    agent = DQN_Agent(env, device, lr=learning_rate)
     # Training loop
     for m in range(num_episodes_train):
         agent.train()
@@ -61,7 +59,6 @@ for i in tqdm.tqdm(range(num_seeds)):
             for k in range(num_episodes_test):
                 g = agent.test()
                 G[k] = g
-
             reward_mean = G.mean()
             reward_sd = G.std()
             print(f"The test reward for episode {m} is {reward_mean} with a standard deviation of {reward_sd}.")

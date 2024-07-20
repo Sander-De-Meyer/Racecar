@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 
+ACTION_SPACE_SIZE = 2
 
 class FullyConnectedModel(nn.Module):
     def __init__(self, input_size, output_size):
@@ -33,19 +34,20 @@ class FullyConnectedModel(nn.Module):
         return x
 
     
-class QNetwork:
-    def __init__(self, env, lr, logdir=None):
+class QNetwork():
+    def __init__(self, env, lr, device, logdir=None):
         # Define Q-network with specified architecture
-        self.net = FullyConnectedModel(5, 4)
+        self.net = FullyConnectedModel(5, ACTION_SPACE_SIZE).to(device)
         self.env = env
+        self.device = device
         self.lr = lr 
         self.logdir = logdir
         self.optimizer = optim.Adam(self.net.parameters(), lr=self.lr)
 
     def load_model(self, model_file):
         # Load pre-trained model from a file
-        return self.net.load_state_dict(torch.load(model_file))
+        return self.net.load_state_dict(torch.load(model_file, map_location=self.device))
 
     def load_model_weights(self, weight_file):
         # Load pre-trained model weights from a file
-        return self.net.load_state_dict(torch.load(weight_file))
+        return self.net.load_state_dict(torch.load(weight_file, map_location=self.device))
