@@ -2,14 +2,24 @@ import gym
 import numpy as np
 import matplotlib.pyplot as plt
 import tqdm
+import torch
 
 from DQN_Agent import DQN_Agent
 from environment import CartPole
 from car import Car
 
+# if GPU is to be used
+device = torch.device(
+    "cuda" if torch.cuda.is_available() else
+    "mps" if torch.backends.mps.is_available() else
+    "cpu"
+)
+
+print(f"device = {device}")
+
 print("starting with environment parameters")
 # Set environment and training parameters
-num_episodes_train = 140 #200
+num_episodes_train = 300 #200
 num_episodes_test = 10 # 20
 learning_rate = 5e-4
 
@@ -22,7 +32,7 @@ action_space_size = env.action_space.n
 state_space_size = 4
 
 # Plot average performance of 5 trials
-num_seeds = 4 # 5
+num_seeds = 1 # 5
 l = num_episodes_train // 10
 res = np.zeros((num_seeds, l))
 gamma = 0.99
@@ -35,8 +45,9 @@ for i in tqdm.tqdm(range(num_seeds)):
     reward_means = []
 
     # Create an instance of the DQN_Agent class
+    print("ist hier?")
     agent = DQN_Agent(env, lr=learning_rate)
-
+    print("nope")
     # Training loop
     for m in range(num_episodes_train):
         agent.train()

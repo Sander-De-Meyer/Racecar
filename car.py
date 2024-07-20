@@ -9,7 +9,7 @@ MAX_STEPS = 500
 
 
 class Car:
-    def __init__(self, x=0, y=0, width = 40, length = 40, theta=0, speed=0, inv_radius=0):
+    def __init__(self, x=400, y=80, width = 20, length = 20, theta=0, speed=0, inv_radius=0):
         # x and y are positions
         # theta is the angle of rotation of the car, in the interval [0, 2pi]. 0 means pointing rightward
         # speed is speed of the car
@@ -21,7 +21,7 @@ class Car:
         self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = x, y, width, length, theta, speed, inv_radius
         self.number_of_steps = 0
         self.action_space = spaces.Discrete(4)
-        self.track = Track(r"C:\Users\Sande\Documents\Projecten\Racecar\track2.png")
+        self.track = Track(r"C:\Users\Sande\Documents\Projecten\Racecar\track3.png")
 
         self.set_centre()
 
@@ -34,7 +34,7 @@ class Car:
         return np.array([self.x, self.y, self.theta, self.speed, self.inv_radius], dtype=np.float32)
 
     def reset(self):
-        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = 0, 0, 40, 40, 0, 0, 0
+        self.x, self.y, self.width, self.length, self.theta, self.speed, self.inv_radius = 400, 80, 20, 20, 0, 0, 0
         self.number_of_steps = 0
         self.set_centre()
 
@@ -58,8 +58,8 @@ class Car:
         new_state, reward = self.update(controls)
         
         truncated = (self.number_of_steps > MAX_STEPS)    
-        if truncated:
-            print(f"Max number of iterations, {MAX_STEPS}, exceeded\n")    
+        # if truncated:
+        #     print(f"Max number of iterations, {MAX_STEPS}, exceeded\n")    
         terminated = self.check_collision_efficient(self.track)
 
         self.number_of_steps += 1
@@ -114,7 +114,7 @@ class Car:
         return (np.sum(is_collided))
 
     def check_collision_efficient(self, track):
-        return False
+        # return False
         front_left = (self.centre_x  + np.cos(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2, self.centre_y - np.sin(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2)
         front_right = (self.centre_x  + np.cos(self.theta)*self.length/2 + np.sin(self.theta)*self.width/2, self.centre_y - np.sin(self.theta)*self.length/2 + np.sin(self.theta)*self.width/2)
         back_left = (self.centre_x  - np.cos(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2, self.centre_y + np.sin(self.theta)*self.length/2 - np.sin(self.theta)*self.width/2)
@@ -130,7 +130,7 @@ class Car:
             #     (np.sqrt((front_right[0] - boundary[0])**2 + (front_right[0] - boundary[1])**2) < 0.01*self.width) or
             #     (np.sqrt((back_left[0] - boundary[0])**2 + (back_left[0] - boundary[1])**2) < 0.01*self.width) or
             #     (np.sqrt((back_right[0] - boundary[0])**2 + (back_right[0] - boundary[1])**2) < 0.01*self.width)):
-                print("Collided")
+                # print("Collided")
                 return True
         return False
 

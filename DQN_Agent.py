@@ -9,12 +9,13 @@ Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward'
 
 class DQN_Agent:
 
-    def __init__(self, env, lr=5e-4, render=False):
+    def __init__(self, env, device, lr=5e-4, render=False):
         # Initialize the DQN Agent.
+        self.device = device
         self.env = env
         self.lr = lr
-        self.policy_net = QNetwork(self.env, self.lr)
-        self.target_net = QNetwork(self.env, self.lr)
+        self.policy_net = QNetwork(self.env, self.lr).to(device)
+        self.target_net = QNetwork(self.env, self.lr).to(device)
         self.target_net.net.load_state_dict(self.policy_net.net.state_dict())  # Copy the weight of the policy network
         self.rm = ReplayMemory(self.env)
         self.burn_in_memory()
@@ -32,6 +33,8 @@ class DQN_Agent:
 
         # Iterate until we store "burn_in" buffer
         while cnt < self.rm.burn_in:
+            if (cnt % 1000 == 0):
+                print(f"cnt = {cnt}") 
             # Reset environment if terminated or truncated
             if terminated or truncated:
                 state, _ = self.env.reset()
